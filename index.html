@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Whitening System - 意識同期プロセス</title>
+    <title>Memory Whitening System - フェーズ：3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <meta name="description" content="職員用業務ポータル。記憶を漂白し、清潔な社会を維持します。">
 </head>
 <body>
     
@@ -21,7 +20,7 @@
         <!-- Setup Screen -->
         <div id="ui-setup" class="fade-in">
             <h2 style="font-weight:lighter; color: #64748b; letter-spacing:0.3em; margin-bottom: 25px;">業務開始：環境同期</h2>
-            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:30px;">※本業務で得られた個人情報は、死の瞬間に自動的に漂白されます。</p>
+            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:30px;">※本業務で得られた個人情報は、作業終了後ただちに漂白されます。</p>
 
             <div style="margin-bottom:20px;">
                 <label style="font-size:0.75rem; color:#94a3b8;">職員名（ID）</label>
@@ -33,7 +32,7 @@
                 <input type="text" id="p-food" placeholder="例：ツナマヨ">
             </div>
             
-            <div id="news-loader" style="font-size:0.75rem; color:var(--accent-blue);">最新のノイズを同期中...</div>
+            <div id="news-loader" style="font-size:0.75rem; color:var(--accent-blue);">最新の環境ノイズを同期中...</div>
 
             <button id="start-btn" onclick="startWork()" disabled>打刻：業務を開始</button>
         </div>
@@ -53,16 +52,16 @@
             <button id="btn-next" onclick="advanceStage()" disabled>漂白未完了</button>
         </div>
 
-        <!-- Part 2: Day 2 (Self Memory Cleaning / Brain) -->
+        <!-- Part 3: Internal Memory Optimization (Brain) -->
         <div id="ui-day2" class="hidden">
-            <h1 id="title" style="font-weight: 300; letter-spacing: 0.1em; color: var(--text-mute); font-size: 1.4rem;">記憶の整理（翌日）</h1>
-            <p id="status-day2" style="font-size: 0.9rem; color: #888; margin-top: 10px; height: 1.2em;">残された記憶を選択して消去してください</p>
+            <h1 id="title" style="font-weight: 300; letter-spacing: 0.1em; color: var(--text-mute); font-size: 1.4rem;">第3フェーズ：内部メモリ最適化</h1>
+            <p id="status-day2" style="font-size: 0.85rem; color: #888; margin-top: 10px; height: 1.2em;">システムを正常化するため、残存メモリを選択して消去してください</p>
 
             <div class="brain-container" id="brain">
                 <!-- Chips are dynamically generated here -->
             </div>
 
-            <p style="margin-top: 25px; font-size: 0.75rem; color: #bbb; letter-spacing: 0.1em;">ラベルをタップすると完全に消去されます</p>
+            <p style="margin-top: 25px; font-size: 0.7rem; color: #bbb; letter-spacing: 0.1em;">メモリラベルを選択すると最適化（消去）されます</p>
         </div>
 
     </div>

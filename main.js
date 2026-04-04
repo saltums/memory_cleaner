@@ -6,11 +6,12 @@ let state = {
     pFood: '',
     latestNews: "未定義の社会的ノイズ",
     stage: 0,
-    phase: 1, // 1: 当日(Portal), 2: 翌日(Brain)
+    phase: 1, // 1: 第1章(Portal), 2: 第2章(Transition), 3: 第3章(Brain/Optimization)
     targetsToClean: 0,
     currentIntensity: 0,
     activeChatTimers: [],
-    chipsCleared: 0
+    chipsCleared: 0,
+    totalChips: 0
 };
 
 const UI = {
@@ -44,9 +45,9 @@ async function initNews() {
         const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
         const data = await res.json();
         state.latestNews = data.items[0].title.split(' - ')[0];
-        if (UI.newsLoader) UI.newsLoader.innerText = `【同期完了】最新の汚染源：${state.latestNews}`;
+        if (UI.newsLoader) UI.newsLoader.innerText = `【分析完了】社会的ノイズ：${state.latestNews}`;
     } catch (e) {
-        state.latestNews = "未定義の社会不安";
+        state.latestNews = "未定義の不和";
         if (UI.newsLoader) UI.newsLoader.innerText = "【同期失敗】オフラインモード";
     } finally {
         if (UI.startBtn) UI.startBtn.disabled = false;
@@ -54,7 +55,7 @@ async function initNews() {
 }
 initNews();
 
-// --- Lifecycle ---
+// --- Chapter 1: The Last Cleaning ---
 function startWork() {
     state.pName = document.getElementById('p-name').value || "未定義職員";
     state.pFood = document.getElementById('p-food').value || "規定の栄養剤";
@@ -72,8 +73,6 @@ function startWork() {
 async function renderStage() {
     UI.btnNext.disabled = true;
     UI.btnNext.innerText = "漂白未完了";
-    UI.btnNext.style.background = "#e2e8f0";
-
     UI.console.innerHTML = '<span style="color: #94a3b8;">案件データをロード中...</span>';
     UI.monologue.innerHTML = "";
 
@@ -90,28 +89,28 @@ async function renderStage() {
     caseData.chat.forEach((msg, i) => {
         const timer = setTimeout(() => {
             pushChat("サトウ", msg);
-        }, (i + 1) * 3500);
+        }, (i + 1) * 4000);
         state.activeChatTimers.push(timer);
     });
 }
 
-// --- Content Generation ---
 async function generateCaseData() {
-    const titles = ["G-102: 過去の電子記号", "A-405: 承認欲求の膿", "P-882: 最新汚染 [ニュース]", "P-883: 特定個体の好物記憶"];
+    const titles = ["G-102: 生活の澱（窓）", "A-405: 澱んだ空気（床）", "P-882: 外部のノイズ", "P-883: 有機的癒着"];
     const currentTitle = titles[state.stage];
 
     if (state.isDemoMode) {
-        // ... (Demo data remains same as previous version but fits current state)
         const demoData = [
-            { title: titles[0], detail: "不衛生なカビ。対象：<span class='target-word' onclick='cleanWord(this)'>たまごっち</span>、<span class='target-word' onclick='cleanWord(this)'>ポケモン</span>", monologue: "（削って帰ろう。）", chat: ["黄ばんでるね。", "おにぎり最高。"] },
-            { title: titles[1], detail: "対象：<span class='target-word' onclick='cleanWord(this)'>いいねの数</span>、<span class='target-word' onclick='cleanWord(this)'>過去のポエム</span>", monologue: "（ガリガリ削ろう。）", chat: ["何食べた？", "お腹空くよね。"] },
-            { title: titles[2], detail: `対象：<span class='target-word' onclick='cleanWord(this)'>${state.latestNews}</span>`, monologue: `（[${state.pFood}] 最高。）`, chat: ["王道だ。", "外が騒がしい。"] },
-            { title: titles[3], detail: `対象：<span class='target-word' onclick='cleanWord(this)'>${state.pFood}の匂い</span>`, monologue: "（……これ、僕の？）", chat: ["？", "返信して？"] }
+            { title: titles[0], detail: "窓を拭くことは、世界との境界を清める儀式。対象：<span class='target-word' onclick='cleanWord(this)'>生活の澱</span>、<span class='target-word' onclick='cleanWord(this)'>溜まった埃</span>", monologue: "（掃除は、明日を迎えやすくするための儀式のようなものだ。）", chat: ["お疲れさま。窓、透明感が出てきたね。", "いつも助かるよ。"] },
+            { title: titles[1], detail: "床を磨き、空間の「澱」を取り除きます。対象：<span class='target-word' onclick='cleanWord(this)'>古い執着</span>、<span class='target-word' onclick='cleanWord(this)'>磨き残し</span>", monologue: "（汚れを落とすことが目的じゃない。清々しさ、それこそが本質だ。）", chat: ["顧客が満足してる。君の腕は本物だよ。", "夕暮れが見えてきたね。"] },
+            { title: titles[2], detail: `外部からの社会的ノイズ混入：<span class='target-word' onclick='cleanWord(this)'>${state.latestNews}</span>`, monologue: `（[${state.pFood}] を食べて、夕暮れの街へ出かけよう。）`, chat: ["今日は定時で上がれそうかな。", "外の信号、青が鮮やかだよ。"] },
+            { title: titles[3], detail: `最終確認：<span class='target-word' onclick='cleanWord(this)'>${state.pFood}の味</span>、<span class='target-word' onclick='cleanWord(this)'>夕焼けの色</span>`, monologue: "（……？ この夕焼けの色、さっき見たのと、同じ……？）", chat: ["…………？", "返信がない。もう街へ踏み出したかな。"] }
         ];
         return demoData[state.stage];
     }
 
-    const prompt = `{"title": "...", "detail": "... <span class='target-word' onclick='cleanWord(this)'>...</span> ...", "monologue": "...", "chat": ["...", "..."]} の形式で、記憶漂白システムの第${state.stage+1}段階（全4段階）の案件データを生成して。職員名:${state.pName}, ニュース:${state.latestNews}, 好物:${state.pFood}。徐々に不穏に。`;
+    const prompt = `JSON形式で、清掃員が顧客の家を掃除している「最後のお掃除」の第${state.stage+1}フェーズを生成して。職員名:${state.pName}, ニュース:${state.latestNews}, 好物:${state.pFood}。
+    村田沙耶香風の冷徹で生理的な文体、生活を「澱（おり）」や「不衛生」と捉える視点を入れて。
+    {"title": "...", "detail": "... <span class='target-word' onclick='cleanWord(this)'>...</span> ...", "monologue": "...", "chat": ["...", "..."]}`;
     
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`, {
@@ -128,7 +127,7 @@ async function generateCaseData() {
     }
 }
 
-// --- Interactions ---
+// --- Chapter 2: The Sudden Termination ---
 function cleanWord(el) {
     if (el.classList.contains('cleaned')) return;
     el.classList.add('cleaned');
@@ -142,101 +141,124 @@ function cleanWord(el) {
 
 function advanceStage() {
     state.stage++;
-    state.currentIntensity += 0.2;
-    document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.currentIntensity})`;
-
     if (state.stage < 4) {
+        state.currentIntensity += 0.2;
+        document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.currentIntensity})`;
         renderStage();
     } else {
-        triggerTwist();
+        triggerGlitch();
     }
 }
 
 function pushChat(sender, message) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<div class='chat-sender'>${sender}</div>${message.replace("[${food}]", state.pFood)}`;
+    div.innerHTML = `<div class='chat-sender'>${sender}</div>${message}`;
     UI.chatLog.appendChild(div);
     setTimeout(() => { div.style.opacity = 1; div.style.transform = "translateY(0)"; }, 50);
     UI.chatLog.scrollTop = UI.chatLog.scrollHeight;
 }
 
-// --- Phase 2 transition ---
-async function triggerTwist() {
+async function triggerGlitch() {
+    state.phase = 2;
     UI.btnNext.classList.add('hidden');
-    UI.console.innerHTML = "";
-    UI.console.style.color = "#94a3b8";
+    UI.container.classList.add('glitch');
+    document.body.style.backgroundColor = "var(--sunset-orange)";
     
-    const twistText = `[致命的なエラー：外部接続の断絶]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\n急ブレーキの音。世界がひっくり返り、アスファルトが空になる。\n\n${state.pName}さんが落とした${state.pFood}のおにぎりが、血にまみれて、真っ白に、光り輝いている。`;
+    const crashText = `[FATAL ERROR: CONNECTION LOST]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\n[信号：緑] - [運命の歯車：停止]\n激しい衝撃。デジタル・ノイズ。遠のく意識。\n\n視界には、最後に見た夕焼けのオレンジ色だけが焼き付いている。\n\nシステムを再起動しています... \n強制最適化モードへ移行します。`;
 
+    UI.console.innerHTML = "";
+    UI.console.style.color = "#fff";
+    
     let i = 0;
     const typeInterval = setInterval(() => {
-        if (i < twistText.length) {
-            UI.console.innerHTML += twistText.charAt(i);
+        if (i < crashText.length) {
+            UI.console.innerHTML += crashText.charAt(i);
             i++;
         } else {
             clearInterval(typeInterval);
-            setTimeout(startPhase2, 3000);
+            setTimeout(startPhase3, 3500);
         }
-    }, 50);
+    }, 40);
 }
 
-async function startPhase2() {
-    state.phase = 2;
+// --- Chapter 3: Internal Memory Optimization ---
+async function startPhase3() {
+    state.phase = 3;
     UI.screens.work.classList.add('hidden');
+    UI.container.classList.remove('glitch');
     UI.container.style.borderLeft = "none";
     UI.container.style.backgroundColor = "transparent";
     UI.container.style.boxShadow = "none";
-    document.body.style.backgroundColor = "#f0f2f5";
+    document.body.style.backgroundColor = "#fafafa"; // 少し青みがかったメンテナンス白
     
     UI.screens.day2.classList.remove('hidden');
     UI.screens.day2.classList.add('active');
 
-    const memories = await generateMemoryChips();
-    state.targetsToClean = memories.length;
+    const memories = await generateDiagnosticChips();
+    state.totalChips = memories.length;
+    state.chipsCleared = 0;
 
     memories.forEach((m, index) => {
         const chip = document.createElement('div');
         chip.className = 'memory-chip';
         chip.innerText = m.text;
-        chip.style.backgroundColor = m.color || "#fff";
         chip.style.setProperty('--delay', `${Math.random() * 2}s`);
         
+        // Final chip logic: Must be the last one
+        if (m.isFinal) chip.id = "final-chip";
+
         chip.onclick = () => {
             if (chip.classList.contains('poof')) return;
-            chip.classList.add('poof');
-            state.targetsToClean--;
-            updateStatusDay2(m.text);
             
-            // 画面を段階的に白くする
-            document.body.style.backgroundColor = `rgba(255, 255, 255, ${1 - (state.targetsToClean / memories.length)})`;
+            // Final chip can only be clicked if it's the last one
+            if (m.isFinal && state.chipsCleared < state.totalChips - 1) {
+                UI.statusDay2.innerText = "この項目は現在アクセスできません（依存関係あり）";
+                return;
+            }
 
-            if (state.targetsToClean === 0) finishEverything();
+            chip.classList.add('poof');
+            state.chipsCleared++;
+            updateStatusPhase3(m.text, m.isFinal);
+            
+            // Gradual whiteout
+            document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.chipsCleared / state.totalChips})`;
+
+            if (m.isFinal) finishNarrative();
         };
         UI.brain.appendChild(chip);
     });
 }
 
-function updateStatusDay2(text) {
-    UI.statusDay2.innerText = `「${text}」を消去しました...`;
-    setTimeout(() => { if(state.targetsToClean > 0) UI.statusDay2.innerText = "残された記憶を選択してください"; }, 1200);
+function updateStatusPhase3(text, isFinal) {
+    if (isFinal) {
+        UI.statusDay2.innerText = "無 への回帰中...";
+    } else {
+        UI.statusDay2.innerText = `内部記録： [${text}] の最適化を完了しました。`;
+        setTimeout(() => { if(state.chipsCleared < state.totalChips - 1) UI.statusDay2.innerText = "次のメモリセクターを選択してください"; }, 1500);
+    }
 }
 
-async function generateMemoryChips() {
-    if (state.isDemoMode) {
-        return [
-            { text: "掃除のコツ", color: "#e7f5ff" },
-            { text: "サトウの笑顔", color: "#fff0f6" },
-            { text: `今朝の${state.pFood}`, color: "#fff9db" },
-            { text: "急な衝撃", color: "#f1f3f5" },
-            { text: "ブレーキの音", color: "#fff4e6" },
-            { text: "業務マニュアル", color: "#e9fac8" },
-            { text: "最後の清々しさ", color: "#f3f0ff" }
-        ];
-    }
+async function generateDiagnosticChips() {
+    const fixedMemories = [
+        { text: "掃除のコツ", isFinal: false },
+        { text: "業務マニュアル", isFinal: false },
+        { text: "窓の透明感", isFinal: false },
+        { text: "顧客の笑顔", isFinal: false },
+        { text: `今朝の${state.pFood}`, isFinal: false },
+        { text: "昨日の夕焼け", isFinal: false },
+        { text: "激しい衝撃（エラーログ）", isFinal: false },
+        { text: "掃除した後の、あの清々しさ", isFinal: true }
+    ];
 
-    const prompt = `JSON配列形式で、死んだ職員 [${state.pName}] の脳内に残った「10個の記憶」を生成して。好物:${state.pFood}, ニュース:${state.latestNews}, 同僚サトウとの会話を含めて。
-    形式: [{"text": "記憶の内容", "color": "薄いパステルカラーの16進数"}, ...]`;
+    if (state.isDemoMode) return fixedMemories;
+
+    const prompt = `JSON形式で、[${state.pName}] の脳内の「内部メモリ最適化チップ」を10個生成して。
+    - 前半は「業務（掃除、マニュアル）」
+    - 中盤は「私的（好物、夕焼け、サトウの会話）」
+    - 終盤は「違和感（衝撃、オレンジの光）」
+    - 最後に必ず {"text": "掃除した後の、あの清々しさ", "isFinal": true} を含めること。
+    JSON配列のみを返して。`;
     
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`, {
@@ -248,20 +270,19 @@ async function generateMemoryChips() {
         const jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
         return JSON.parse(jsonStr);
     } catch (e) {
-        state.isDemoMode = true;
-        return generateMemoryChips();
+        return fixedMemories;
     }
 }
 
-function finishEverything() {
+function finishNarrative() {
     document.body.style.backgroundColor = "#fff";
     UI.screens.day2.style.opacity = "0";
     setTimeout(() => {
         UI.overlayMsg.classList.add('show');
-    }, 2000);
+    }, 2500);
 }
 
-// Export
+// Export for direct HTML usage
 window.startWork = startWork;
 window.cleanWord = cleanWord;
 window.advanceStage = advanceStage;
