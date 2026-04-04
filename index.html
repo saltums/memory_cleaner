@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <meta name="description" content="職員用意識同期ポータル。意識の漂白業務を開始してください。">
+    <meta name="description" content="ノベルゲーム形式・職員用意識同期ポータル。">
 </head>
 <body>
     
@@ -20,7 +20,7 @@
 
         <!-- Setup Screen (意識同期) -->
         <div id="ui-setup" class="fade-in">
-            <h3 style="font-weight:lighter; color:#64748b; letter-spacing:0.2em; margin-bottom: 40px;">業務開始：意識同期プロセス</h3>
+            <h3 style="font-weight:lighter; color:#64748b; letter-spacing:0.2em; margin-bottom: 40px; text-align: center;">業務開始：意識同期プロセス</h3>
             
             <div class="input-group">
                 <label>1. 職員ID（氏名）</label>
@@ -36,22 +36,26 @@
 
             <button id="start-btn" onclick="boot()" disabled>打刻：業務を開始</button>
             
-            <p style="font-size: 0.6rem; color: #94a3b8; margin-top: 35px; text-align: center; font-family: 'Inter', sans-serif;">
-                ※AI解析にはGemini APIキーが必要です。未入力時は規定の解析プロトコルを実行します。
+            <p style="font-size: 0.65rem; color: #94a3b8; margin-top: 35px; text-align: center; font-family: 'Inter', sans-serif; line-height: 1.6;">
+                ※AI解析にはGemini APIキーが必要です。未入力時は規定のプロトコルを実行します。<br>
+                開始後は、画面をクリック（またはタップ）して業務を進行してください。
             </p>
         </div>
 
-        <!-- Work Screen (業務中) -->
+        <!-- Work Screen (ノベルゲーム形式) -->
         <div id="ui-work" class="hidden">
-            <div id="console"></div>
-            
             <div class="progress-bar">
                 <div id="progress" class="progress-fill"></div>
             </div>
 
-            <div id="monologue" class="monologue"></div>
-
-            <button id="btn-action" onclick="handleStep()">漂白を開始する</button>
+            <!-- 上画面：システム解析 -->
+            <div id="console"></div>
+            
+            <!-- 下画面：ダイアログボックス -->
+            <div id="monologue-container">
+                <div id="monologue"></div>
+                <div class="next-indicator">TAP TO PROCEED</div>
+            </div>
         </div>
     </div>
 
