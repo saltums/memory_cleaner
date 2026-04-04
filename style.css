@@ -1,14 +1,14 @@
 :root {
     --bg-slate: #cbd5e1;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    --panel-white: #ffffff;
+    --text-slate: #1e293b;
+    --text-mute: #94a3b8;
     --accent-blue: #3b82f6;
-    --border-dark: #334155;
-    --card-bg: #ffffff;
-    --input-bg: #f8fafc;
-    --border-light: #e2e8f0;
+    --warning-gold: #b45309;
+    --border-soft: #f1f5f9;
+    --chat-bg: #f8fafc;
     --font-serif: "Hiragino Mincho ProN", "Sawarabi Mincho", serif;
-    --font-sans: "Inter", system-ui, sans-serif;
+    --font-sans: "Inter", "Helvetica Neue", sans-serif;
 }
 
 * {
@@ -19,162 +19,191 @@
 
 body {
     background-color: var(--bg-slate);
-    color: var(--text-main);
-    font-family: var(--font-serif);
+    color: var(--text-slate);
+    font-family: var(--font-sans);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 4s ease;
+    transition: background-color 5s ease;
     overflow: hidden;
-    user-select: none;
 }
 
 #container {
-    background: var(--card-bg);
+    background: var(--panel-white);
     padding: 40px;
-    width: 800px;
-    height: 600px;
-    max-width: 95vw;
-    box-shadow: 0 50px 120px rgba(0, 0, 0, 0.15);
-    border-left: 12px solid var(--border-dark);
-    position: relative;
+    width: 850px;
+    height: 650px;
+    max-width: 98vw;
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.1);
+    border-left: 15px solid #334155;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    cursor: pointer; /* 全体をクリックで進める */
+    position: relative;
+    transition: opacity 2s;
 }
 
 .header {
-    font-family: var(--font-sans);
     font-size: 0.65rem;
-    color: var(--text-muted);
+    color: var(--text-mute);
     letter-spacing: 0.4em;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-soft);
     padding-bottom: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     display: flex;
     justify-content: space-between;
 }
 
-/* Setup Screen */
-#ui-setup {
-    flex-grow: 1;
+/* Layout Definitions */
+#main-layout {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    cursor: default;
+    gap: 30px;
+    flex: 1;
+    min-height: 0;
 }
 
+#work-area {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-soft);
+    padding-right: 25px;
+}
+
+#chat-area {
+    flex: 1;
+    background: var(--chat-bg);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    position: relative;
+}
+
+#chat-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Chat Bubble UI */
+.chat-msg {
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-sender {
+    font-size: 0.6rem;
+    font-weight: bold;
+    color: var(--accent-blue);
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+}
+
+/* Work Elements */
+#console {
+    flex: 1;
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    line-height: 2.3;
+    white-space: pre-wrap;
+    color: #334155;
+    margin-bottom: 20px;
+}
+
+.target-word {
+    color: var(--warning-gold);
+    background: #fef3c7;
+    padding: 0 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: inline-block;
+    border-bottom: 2px solid #fbbf24;
+}
+
+.target-word:hover {
+    transform: scale(1.1) rotate(1deg);
+    background: #fde68a;
+    box-shadow: 0 4px 10px rgba(180, 83, 9, 0.1);
+}
+
+.cleaned {
+    color: #fff !important;
+    background: var(--accent-blue) !important;
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    pointer-events: none;
+    transform: scale(0.9) !important;
+    opacity: 0.7;
+}
+
+.monologue {
+    font-family: var(--font-serif);
+    height: 100px;
+    color: var(--text-mute);
+    font-style: italic;
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 20px;
+    line-height: 1.8;
+}
+
+/* Buttons and Inputs */
 input {
     width: 100%;
-    padding: 16px;
-    border: 1px solid var(--border-light);
-    background: var(--input-bg);
-    margin-top: 10px;
-    font-family: inherit;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    background: #fafafa;
+    border-radius: 6px;
     font-size: 1rem;
+    margin-top: 8px;
     outline: none;
+    transition: all 0.2s;
 }
+
+input:focus { border-color: var(--accent-blue); background: #fff; }
 
 button {
     background: #0f172a;
     color: #fff;
     border: none;
-    padding: 22px;
+    padding: 20px;
+    font-weight: bold;
+    letter-spacing: 0.5em;
     cursor: pointer;
-    letter-spacing: 0.6em;
-    font-weight: 700;
-    margin-top: 30px;
-    transition: all 0.3s ease;
+    transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-top: 25px;
 }
 
-button:hover { background: #1e293b; }
-button:disabled { background: var(--border-light); color: var(--text-muted); cursor: not-allowed; }
-
-/* Novel Game Layout (Work Screen) */
-#ui-work {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-/* 上画面：システムコンソール */
-#console {
-    flex-grow: 1;
-    background: #fdfdfd;
-    padding: 25px;
-    border: 1px solid #f1f5f9;
-    font-size: 1.1rem;
-    line-height: 2.2;
-    color: #475569;
-    white-space: pre-wrap;
-    overflow-y: auto;
-    margin-bottom: 120px; /* 下画面との余白 */
-    border-left: 4px solid #e2e8f0;
-}
-
-/* 下画面：ダイアログボックス */
-#monologue-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 140px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid var(--border-light);
-    padding: 25px 35px;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.02);
-    z-index: 20;
-}
-
-#monologue {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #64748b;
-    font-style: italic;
-}
-
-/* クリック誘導アニメーション */
-.next-indicator {
-    position: absolute;
-    bottom: 15px;
-    right: 25px;
-    font-size: 0.7rem;
-    color: var(--accent-blue);
-    letter-spacing: 0.2em;
-    animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
-}
-
-.progress-bar {
-    position: absolute;
-    top: -5px;
-    left: 0;
-    height: 3px;
-    background: var(--border-light);
-    width: 100%;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--accent-blue);
-    width: 0%;
-    transition: width 0.5s ease;
-}
+button:hover { background: #1e293b; transform: translateY(-1px); }
+button:disabled { background: var(--border-soft); color: var(--text-mute); cursor: not-allowed; transform: none; }
 
 .hidden { display: none !important; }
 
-.fade-in {
-    animation: fadeIn 1s ease forwards;
+#overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 3s ease;
+    z-index: 1000;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Utility Animations */
+.fade-in { animation: fadeIn 1.2s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
