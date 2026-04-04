@@ -1,6 +1,7 @@
 // --- Constants & State ---
 let state = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
+    isDemoMode: false,
     playerName: '',
     playerAge: '',
     playerGender: '',
@@ -18,6 +19,7 @@ const UI = {
     },
     apiKeyInput: document.getElementById('api-key'),
     loginBtn: document.getElementById('login-btn'),
+    demoBtn: document.getElementById('demo-btn'),
     startBtn: document.getElementById('start-btn'),
     actionBtn: document.getElementById('action-btn'),
     memoryDisplay: document.getElementById('memory-display'),
@@ -36,11 +38,18 @@ UI.loginBtn.addEventListener('click', () => {
     const key = UI.apiKeyInput.value.trim();
     if (key) {
         state.apiKey = key;
+        state.isDemoMode = false;
         localStorage.setItem('gemini_api_key', key);
         showScreen('input');
     } else {
         alert('APIキーを入力してください。');
     }
+});
+
+UI.demoBtn.addEventListener('click', () => {
+    state.isDemoMode = true;
+    state.apiKey = '';
+    showScreen('input');
 });
 
 UI.startBtn.addEventListener('click', async () => {
@@ -89,6 +98,20 @@ function updateCleanliness(target) {
 async function generateAiMemory(mode) {
     UI.memoryDisplay.innerHTML = '<span class="system-label">ANALYZING...</span>';
     
+    if (state.isDemoMode) {
+        // デモ用の固定メッセージ
+        let demoText = "";
+        if (mode === "initial_cleaning") {
+            demoText = `[解析結果：世代的エラーの検出]\nID：${state.playerName} の深層意識をスキャン。${state.playerAge}歳という年次に特有の、酸化した電子音と使い道のなくなった古いプリペイドカードの質感が内壁に癒着しています。\nこれは生命維持に不必要なエラーであり、精神の純度を著しく下げています。\n直ちに第一段階の洗浄を開始します。\n\n黄ばみ度：42%（執着による酸化が進行しています）`;
+        } else {
+            demoText = `[第二段階：深層漂白プロセス]\n精神の深部より、不衛星な感情の粒子が検出されました。「愛着」や「未練」という名の、腐敗した有機的な意味合いです。\nこれらは${state.playerGender}としての社会的な役割を全うする上で、単なるノイズとして機能しています。\n純白の溶剤を注入し、すべての「思い出」を無機質なデータへと中和します。\n\n黄ばみ度：88%（漂白は順調です）`;
+        }
+        await typeWriter(demoText);
+        UI.actionBtn.disabled = false;
+        UI.actionBtn.innerText = "漂白を継続";
+        return;
+    }
+
     // 村田沙耶香風プロンプト
     const prompt = `
  あなたは作家の村田沙耶香のような文体を持つ、無機質で清潔なAIです。
