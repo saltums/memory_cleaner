@@ -6,15 +6,18 @@ let state = {
     pFood: '',
     latestNews: "未定義の社会的ノイズ",
     stage: 0,
+    phase: 1, // 1: 当日(Portal), 2: 翌日(Brain)
     targetsToClean: 0,
     currentIntensity: 0,
-    activeChatTimers: []
+    activeChatTimers: [],
+    chipsCleared: 0
 };
 
 const UI = {
     screens: {
         setup: document.getElementById('ui-setup'),
-        work: document.getElementById('ui-work')
+        work: document.getElementById('ui-work'),
+        day2: document.getElementById('ui-day2')
     },
     console: document.getElementById('console'),
     monologue: document.getElementById('monologue'),
@@ -24,7 +27,9 @@ const UI = {
     newsLoader: document.getElementById('news-loader'),
     clock: document.getElementById('clock'),
     container: document.getElementById('container'),
-    overlay: document.getElementById('overlay')
+    brain: document.getElementById('brain'),
+    statusDay2: document.getElementById('status-day2'),
+    overlayMsg: document.getElementById('overlay-msg')
 };
 
 // --- Initialization ---
@@ -39,12 +44,12 @@ async function initNews() {
         const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
         const data = await res.json();
         state.latestNews = data.items[0].title.split(' - ')[0];
-        UI.newsLoader.innerText = `【同期完了】最新の汚染源：${state.latestNews}`;
+        if (UI.newsLoader) UI.newsLoader.innerText = `【同期完了】最新の汚染源：${state.latestNews}`;
     } catch (e) {
         state.latestNews = "未定義の社会不安";
-        UI.newsLoader.innerText = "【同期失敗】オフラインモード";
+        if (UI.newsLoader) UI.newsLoader.innerText = "【同期失敗】オフラインモード";
     } finally {
-        UI.startBtn.disabled = false;
+        if (UI.startBtn) UI.startBtn.disabled = false;
     }
 }
 initNews();
@@ -53,11 +58,6 @@ initNews();
 function startWork() {
     state.pName = document.getElementById('p-name').value || "未定義職員";
     state.pFood = document.getElementById('p-food').value || "規定の栄養剤";
-
-    if (!state.pName || !state.pFood) {
-        alert("職員名とおにぎりの具を入力してください。");
-        return;
-    }
 
     UI.screens.setup.classList.add('hidden');
     UI.screens.work.classList.remove('hidden');
@@ -77,20 +77,16 @@ async function renderStage() {
     UI.console.innerHTML = '<span style="color: #94a3b8;">案件データをロード中...</span>';
     UI.monologue.innerHTML = "";
 
-    // Clear old chat timers
     state.activeChatTimers.forEach(clearTimeout);
     state.activeChatTimers = [];
 
     const caseData = await generateCaseData();
     
-    // Display Console & Monologue
     UI.console.innerHTML = `[案件：${caseData.title}]\n${caseData.detail}`;
     UI.monologue.innerHTML = caseData.monologue;
     
-    // Set Target Count
     state.targetsToClean = UI.console.querySelectorAll('.target-word').length;
 
-    // Schedule Chat Messages
     caseData.chat.forEach((msg, i) => {
         const timer = setTimeout(() => {
             pushChat("サトウ", msg);
@@ -99,66 +95,24 @@ async function renderStage() {
     });
 }
 
-// --- Content Generation (AI / Demo) ---
+// --- Content Generation ---
 async function generateCaseData() {
-    const titles = [
-        "G-102: 過去の電子記号",
-        "A-405: 承認欲求の膿",
-        "P-882: 最新汚染 [ニュース]",
-        "P-883: 特定個体の好物記憶"
-    ];
+    const titles = ["G-102: 過去の電子記号", "A-405: 承認欲求の膿", "P-882: 最新汚染 [ニュース]", "P-883: 特定個体の好物記憶"];
     const currentTitle = titles[state.stage];
 
     if (state.isDemoMode) {
+        // ... (Demo data remains same as previous version but fits current state)
         const demoData = [
-            {
-                title: titles[0],
-                detail: "懐かしさという名の不衛生なカビ。対象：<span class='target-word' onclick='cleanWord(this)'>たまごっち</span>、<span class='target-word' onclick='cleanWord(this)'>ポケモン</span>、<span class='target-word' onclick='cleanWord(this)'>赤外線通信</span>",
-                monologue: "（あー、懐かしいね。でもこれ、ただのゴミへの執着。不衛生だなぁ。さっさと削って帰ろう。）",
-                chat: ["お疲れー。今日の案件、結構黄ばんでるね。", "僕はさっき終わらせてお昼。おにぎり最高。"]
-            },
-            {
-                title: titles[1],
-                detail: "自分を特別だと思い込もうとするエラー。対象：<span class='target-word' onclick='cleanWord(this)'>いいねの数</span>、<span class='target-word' onclick='cleanWord(this)'>過去のポエム</span>",
-                monologue: "（うわぁ、ベタついてる。自意識の脂汚れは削るのが一番気持ちいいんだよね。ガリガリ削っちゃおう。）",
-                chat: ["そういえば、君は今日何食べた？", "僕は具材の記憶を消すたびに、お腹空いちゃうよ。"]
-            },
-            {
-                title: titles[2],
-                detail: `外部流入した不潔な情報。対象：<span class='target-word' onclick='cleanWord(this)'>${state.latestNews}</span>`,
-                monologue: `（あ、このニュース。僕もさっき見た。……っていうか、サトウ、僕は今日 [${state.pFood}] を食べたよ。最高だよね。）`,
-                chat: [` [${state.pFood}] ！ いいね。王道だ。`, "あ、なんか外救急車うるさくない？ 何かあったのかな。"]
-            },
-            {
-                title: titles[3],
-                detail: `有機的癒着。対象：<span class='target-word' onclick='cleanWord(this)'>${state.pFood}の食感</span>、<span class='target-word' onclick='cleanWord(this)'>${state.pFood}の匂い</span>`,
-                monologue: `（……おかしいな。これ、僕がさっき食べた [${state.pFood}] の感触と全く同じだ。……サトウ、返信してくれ。これ誰の記憶だ？）`,
-                chat: ["…………？", "……返信ないけど大丈夫？ 作業進んでる？"]
-            }
+            { title: titles[0], detail: "不衛生なカビ。対象：<span class='target-word' onclick='cleanWord(this)'>たまごっち</span>、<span class='target-word' onclick='cleanWord(this)'>ポケモン</span>", monologue: "（削って帰ろう。）", chat: ["黄ばんでるね。", "おにぎり最高。"] },
+            { title: titles[1], detail: "対象：<span class='target-word' onclick='cleanWord(this)'>いいねの数</span>、<span class='target-word' onclick='cleanWord(this)'>過去のポエム</span>", monologue: "（ガリガリ削ろう。）", chat: ["何食べた？", "お腹空くよね。"] },
+            { title: titles[2], detail: `対象：<span class='target-word' onclick='cleanWord(this)'>${state.latestNews}</span>`, monologue: `（[${state.pFood}] 最高。）`, chat: ["王道だ。", "外が騒がしい。"] },
+            { title: titles[3], detail: `対象：<span class='target-word' onclick='cleanWord(this)'>${state.pFood}の匂い</span>`, monologue: "（……これ、僕の？）", chat: ["？", "返信して？"] }
         ];
         return demoData[state.stage];
     }
 
-    // Gemini Mode
-    const prompt = `
- あなたは「記憶漂白システム」の業務ポータルを担当するAIです。
- 以下の情報を元に、現在の案件の「詳細テキスト」と「同僚とのチャット」をJSONで生成してください。
-
- 【情報】
- 段階: ステージ ${state.stage+1} / 4
- 案件タイトル: ${currentTitle}
- 職員氏名: ${state.pName}
- 今朝のニュース: ${state.latestNews}
- 好物: ${state.pFood}
-
- 【出力指令】
- 1. detail: 村田沙耶香風の冷徹な文体。漂白すべき不潔な単語（3つ程度）を必ず <span class='target-word' onclick='cleanWord(this)'>単語</span> というタグで囲むこと。
- 2. monologue: 職員（プレイヤー）の心の声。
- 3. chat: 同僚「サトウ」からのメッセージ（配列で2つ）。次第に物語の不穏さが伝わる内容にすること。
- 4. JSON形式のみを返せ。
-    {"title": "...", "detail": "... <span class='target-word' onclick='cleanWord(this)'>...</span> ...", "monologue": "...", "chat": ["...", "..."]}
-`;
-
+    const prompt = `{"title": "...", "detail": "... <span class='target-word' onclick='cleanWord(this)'>...</span> ...", "monologue": "...", "chat": ["...", "..."]} の形式で、記憶漂白システムの第${state.stage+1}段階（全4段階）の案件データを生成して。職員名:${state.pName}, ニュース:${state.latestNews}, 好物:${state.pFood}。徐々に不穏に。`;
+    
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`, {
             method: 'POST',
@@ -169,7 +123,6 @@ async function generateCaseData() {
         const jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
         return JSON.parse(jsonStr);
     } catch (e) {
-        console.error("Gemini failed. Defaulting to Demo.", e);
         state.isDemoMode = true;
         return generateCaseData();
     }
@@ -180,7 +133,6 @@ function cleanWord(el) {
     if (el.classList.contains('cleaned')) return;
     el.classList.add('cleaned');
     state.targetsToClean--;
-
     if (state.targetsToClean <= 0) {
         UI.btnNext.disabled = false;
         UI.btnNext.innerText = "漂白完了：次へ進む";
@@ -190,7 +142,7 @@ function cleanWord(el) {
 
 function advanceStage() {
     state.stage++;
-    state.currentIntensity += 0.25;
+    state.currentIntensity += 0.2;
     document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.currentIntensity})`;
 
     if (state.stage < 4) {
@@ -203,47 +155,113 @@ function advanceStage() {
 function pushChat(sender, message) {
     const div = document.createElement('div');
     div.className = 'chat-msg';
-    div.innerHTML = `<div class='chat-sender'>${sender}</div>${message}`;
+    div.innerHTML = `<div class='chat-sender'>${sender}</div>${message.replace("[${food}]", state.pFood)}`;
     UI.chatLog.appendChild(div);
-    
-    // Animate
-    setTimeout(() => {
-        div.style.opacity = 1;
-        div.style.transform = "translateY(0)";
-    }, 50);
-    
+    setTimeout(() => { div.style.opacity = 1; div.style.transform = "translateY(0)"; }, 50);
     UI.chatLog.scrollTop = UI.chatLog.scrollHeight;
 }
 
-// --- Final Twist ---
+// --- Phase 2 transition ---
 async function triggerTwist() {
     UI.btnNext.classList.add('hidden');
     UI.console.innerHTML = "";
     UI.console.style.color = "#94a3b8";
     
-    const finalScript = `[致命的なエラー：外部接続の断絶]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\nスマホの画面には、死ぬまで見ていたニュース。\n「${state.latestNews}」\n急ブレーキの音。世界がひっくり返り、アスファルトが空になる。\n\n地面に転がる、${state.pName}さんが落とした${state.pFood}のおにぎり。\n血にまみれて、真っ白に、光り輝いている。`;
+    const twistText = `[致命的なエラー：外部接続の断絶]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\n急ブレーキの音。世界がひっくり返り、アスファルトが空になる。\n\n${state.pName}さんが落とした${state.pFood}のおにぎりが、血にまみれて、真っ白に、光り輝いている。`;
 
     let i = 0;
     const typeInterval = setInterval(() => {
-        if (i < finalScript.length) {
-            UI.console.innerHTML += finalScript.charAt(i);
+        if (i < twistText.length) {
+            UI.console.innerHTML += twistText.charAt(i);
             i++;
         } else {
             clearInterval(typeInterval);
-            UI.monologue.innerHTML = "（……あぁ、そうか。掃除をしていたんじゃない。\n僕は、自分を消し去るための『光』だったんだ。）";
-            
-            setTimeout(() => {
-                UI.overlay.style.opacity = 1;
-                setTimeout(() => {
-                    document.body.innerHTML = `<div class="fade-in" style="color:#eee; font-size:0.8rem; letter-spacing:2em; text-align:center; width:100%;">PURIFIED</div>`;
-                    document.body.style.backgroundColor = "#fff";
-                }, 3000);
-            }, 3000);
+            setTimeout(startPhase2, 3000);
         }
     }, 50);
 }
 
-// Export for global access
+async function startPhase2() {
+    state.phase = 2;
+    UI.screens.work.classList.add('hidden');
+    UI.container.style.borderLeft = "none";
+    UI.container.style.backgroundColor = "transparent";
+    UI.container.style.boxShadow = "none";
+    document.body.style.backgroundColor = "#f0f2f5";
+    
+    UI.screens.day2.classList.remove('hidden');
+    UI.screens.day2.classList.add('active');
+
+    const memories = await generateMemoryChips();
+    state.targetsToClean = memories.length;
+
+    memories.forEach((m, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'memory-chip';
+        chip.innerText = m.text;
+        chip.style.backgroundColor = m.color || "#fff";
+        chip.style.setProperty('--delay', `${Math.random() * 2}s`);
+        
+        chip.onclick = () => {
+            if (chip.classList.contains('poof')) return;
+            chip.classList.add('poof');
+            state.targetsToClean--;
+            updateStatusDay2(m.text);
+            
+            // 画面を段階的に白くする
+            document.body.style.backgroundColor = `rgba(255, 255, 255, ${1 - (state.targetsToClean / memories.length)})`;
+
+            if (state.targetsToClean === 0) finishEverything();
+        };
+        UI.brain.appendChild(chip);
+    });
+}
+
+function updateStatusDay2(text) {
+    UI.statusDay2.innerText = `「${text}」を消去しました...`;
+    setTimeout(() => { if(state.targetsToClean > 0) UI.statusDay2.innerText = "残された記憶を選択してください"; }, 1200);
+}
+
+async function generateMemoryChips() {
+    if (state.isDemoMode) {
+        return [
+            { text: "掃除のコツ", color: "#e7f5ff" },
+            { text: "サトウの笑顔", color: "#fff0f6" },
+            { text: `今朝の${state.pFood}`, color: "#fff9db" },
+            { text: "急な衝撃", color: "#f1f3f5" },
+            { text: "ブレーキの音", color: "#fff4e6" },
+            { text: "業務マニュアル", color: "#e9fac8" },
+            { text: "最後の清々しさ", color: "#f3f0ff" }
+        ];
+    }
+
+    const prompt = `JSON配列形式で、死んだ職員 [${state.pName}] の脳内に残った「10個の記憶」を生成して。好物:${state.pFood}, ニュース:${state.latestNews}, 同僚サトウとの会話を含めて。
+    形式: [{"text": "記憶の内容", "color": "薄いパステルカラーの16進数"}, ...]`;
+    
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await response.json();
+        const jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
+    } catch (e) {
+        state.isDemoMode = true;
+        return generateMemoryChips();
+    }
+}
+
+function finishEverything() {
+    document.body.style.backgroundColor = "#fff";
+    UI.screens.day2.style.opacity = "0";
+    setTimeout(() => {
+        UI.overlayMsg.classList.add('show');
+    }, 2000);
+}
+
+// Export
 window.startWork = startWork;
 window.cleanWord = cleanWord;
 window.advanceStage = advanceStage;

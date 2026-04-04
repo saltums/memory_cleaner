@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Whitening System - 端末No.702</title>
+    <title>Memory Whitening System - 意識同期プロセス</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <meta name="description" content="職員用業務ポータル。記憶を漂白し、清潔な社会を維持します。">
 </head>
 <body>
     
@@ -19,8 +20,8 @@
 
         <!-- Setup Screen -->
         <div id="ui-setup" class="fade-in">
-            <h2 style="font-weight:lighter; color: #64748b; letter-spacing:0.3em; margin-bottom: 30px;">業務開始：環境同期</h2>
-            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:30px;">※本業務で得られた個人情報は、作業終了後ただちに漂白されます。</p>
+            <h2 style="font-weight:lighter; color: #64748b; letter-spacing:0.3em; margin-bottom: 25px;">業務開始：環境同期</h2>
+            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:30px;">※本業務で得られた個人情報は、死の瞬間に自動的に漂白されます。</p>
 
             <div style="margin-bottom:20px;">
                 <label style="font-size:0.75rem; color:#94a3b8;">職員名（ID）</label>
@@ -37,28 +38,37 @@
             <button id="start-btn" onclick="startWork()" disabled>打刻：業務を開始</button>
         </div>
 
-        <!-- Work Screen -->
-        <div id="ui-work" class="hidden" style="display:contents;">
+        <!-- Part 1: Day 1 (Customer Cleaning Portal) -->
+        <div id="ui-work" class="hidden">
             <div id="main-layout">
-                <!-- 左：作業エリア -->
                 <div id="work-area">
                     <div id="console"></div>
                     <div id="monologue" class="monologue"></div>
                 </div>
-
-                <!-- 右：チャットエリア -->
                 <div id="chat-area">
                     <div style="font-size:0.6rem; color:#cbd5e1; margin-bottom:12px; letter-spacing:0.1em;">INTERNAL_CHAT: SATO</div>
                     <div id="chat-log"></div>
                 </div>
             </div>
-
             <button id="btn-next" onclick="advanceStage()" disabled>漂白未完了</button>
         </div>
 
-        <!-- Overlay -->
-        <div id="overlay"></div>
+        <!-- Part 2: Day 2 (Self Memory Cleaning / Brain) -->
+        <div id="ui-day2" class="hidden">
+            <h1 id="title" style="font-weight: 300; letter-spacing: 0.1em; color: var(--text-mute); font-size: 1.4rem;">記憶の整理（翌日）</h1>
+            <p id="status-day2" style="font-size: 0.9rem; color: #888; margin-top: 10px; height: 1.2em;">残された記憶を選択して消去してください</p>
+
+            <div class="brain-container" id="brain">
+                <!-- Chips are dynamically generated here -->
+            </div>
+
+            <p style="margin-top: 25px; font-size: 0.75rem; color: #bbb; letter-spacing: 0.1em;">ラベルをタップすると完全に消去されます</p>
+        </div>
+
     </div>
+
+    <!-- Final Message Overlay -->
+    <div id="overlay-msg">清掃完了。お疲れ様でした。</div>
 
     <script src="main.js"></script>
 </body>
