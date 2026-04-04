@@ -3,83 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Whitening System — v1.0.4</title>
+    <title>厚生労働省：記憶清浄適性検査</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <meta name="description" content="臨床的アプローチによる記憶の漂白システム。あなたの「人生」という汚れを、Gemini AIが丁寧に除去します。">
+    <meta name="description" content="厚生労働省 精神衛生管理局による適性検査システム。">
 </head>
 <body>
     <div class="grain"></div>
     
-    <div id="app-container">
-        <h1>Memory Whitening System</h1>
+    <div id="container">
+        <div class="gov-header">
+            <span>厚生労働省｜精神衛生管理局</span>
+            <span>適性検査 ver 4.02</span>
+        </div>
 
         <!-- Setup Screen -->
-        <div id="setup-screen" class="card fade-in">
+        <div id="ui-setup" class="fade-in">
+            <p style="font-size:0.9rem; color:#444; margin-bottom:35px; line-height: 2;">
+                本検査は、あなたの個体としての「清潔さ」を測定するものです。<br>
+                以下の質問に、直感で、正確に回答してください。
+            </p>
+            
             <div class="input-group">
-                <label for="api-key">Gemini API Key</label>
-                <input type="password" id="api-key" placeholder="•••••••••••••••••••••••••••••••••••••••">
-                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
-                    ※Gemini APIは、Googleの高性能AIをこのアプリで利用するための鍵です。キーはブラウザにのみ保存されます。
-                </p>
-            </div>
-            <button id="login-btn">システムへログイン</button>
-            <button id="demo-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); margin-top: 1rem;">デモモードを試す（APIキー不要）</button>
-        </div>
-
-        <!-- Input Screen -->
-        <div id="input-screen" class="card hidden">
-            <div class="input-group">
-                <label>識別ID / 呼称</label>
-                <input type="text" id="player-name" placeholder="例：サトウ イチロウ">
+                <label>1. 個体識別名（氏名）</label>
+                <input type="text" id="p-name" placeholder="氏名を入力">
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="input-group">
-                    <label>年次（年齢）</label>
-                    <input type="number" id="player-age" placeholder="30">
-                </div>
-                <div class="input-group">
-                    <label>型式（性別）</label>
-                    <select id="player-gender">
-                        <option value="男性">男性型</option>
-                        <option value="女性">女性型</option>
-                        <option value="その他">非公開 / その他</option>
-                    </select>
-                </div>
-            </div>
-
             <div class="input-group">
-                <label>あなたの一番忘れたい記憶は何ですか？</label>
-                <textarea id="player-episode" placeholder="例：あの時あんなことを言わなければよかった、大切にしていたものを壊してしまった..."></textarea>
+                <label>2. 今朝、最後に口にした「食べ物」は？</label>
+                <input type="text" id="p-food" placeholder="例：ツナマヨおにぎり">
             </div>
             
-            <button id="start-btn">漂白プロセスを開始</button>
-        </div>
-
-        <!-- Cleaning Screen -->
-        <div id="cleaning-screen" class="card hidden">
-            <div id="memory-display">システムの初期化中...</div>
-            
-            <button id="action-btn" disabled>漂白を実行</button>
-
-            <div class="status-bar">
-                <span class="system-label">CLEANLINESS</span>
-                <div class="progress-container">
-                    <div id="progress-bar"></div>
-                </div>
-                <span class="system-label"><span id="cleanliness-pct">0</span>%</span>
+            <div class="input-group">
+                <label>3. 先ほどスマホで見た「SNSの単語」は？</label>
+                <input type="text" id="p-sns" placeholder="例：政治、芸能、昨日見た夢">
             </div>
+
+            <button onclick="boot()">適性検査を開始する</button>
+
+            <p style="font-size: 0.65rem; color: #999; margin-top: 30px; text-align: center;">
+                ※AI解析にはGemini APIキーが必要です（未入力時はシミュレーションモードで開始します）。
+            </p>
         </div>
 
-        <!-- End Screen -->
-        <div id="end-screen" class="card hidden">
-            <div id="end-message" style="line-height: 2; font-size: 0.95rem;"></div>
-            <div style="margin-top: 3rem; text-align: center;">
-                <p class="system-label">すべての処理が正常に完了しました。</p>
-                <button onclick="location.reload()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.7rem; width: auto; padding: 0.5rem 1rem;">ログオフ</button>
+        <!-- Work Screen -->
+        <div id="ui-work" class="hidden">
+            <div id="console"></div>
+            
+            <div class="status-row">
+                <span class="removal-label">除去プロセス：稼働中</span>
+                <button id="btn-next" onclick="nextStage()" style="width: auto; margin-top: 0; padding: 12px 30px;">漂白（Whitening）</button>
             </div>
         </div>
     </div>
