@@ -3,31 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>厚生労働省：記憶清浄適性検査</title>
+    <title>Memory Whitening System - 業務ポータル</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <meta name="description" content="厚生労働省 精神衛生管理局による適性検査システム。">
+    <meta name="description" content="職員用意識同期ポータル。意識の漂白業務を開始してください。">
 </head>
 <body>
-    <div class="grain"></div>
     
     <div id="container">
-        <div class="gov-header">
-            <span>厚生労働省｜精神衛生管理局</span>
-            <span>適性検査 ver 4.02</span>
+        <div class="header">
+            <span>MEM_CLEANER_LOG // ID: 702</span>
+            <span id="clock">CONNECTING...</span>
         </div>
 
-        <!-- Setup Screen -->
+        <!-- Setup Screen (意識同期) -->
         <div id="ui-setup" class="fade-in">
-            <p style="font-size:0.9rem; color:#444; margin-bottom:35px; line-height: 2;">
-                本検査は、あなたの個体としての「清潔さ」を測定するものです。<br>
-                以下の質問に、直感で、正確に回答してください。
-            </p>
+            <h3 style="font-weight:lighter; color:#64748b; letter-spacing:0.2em; margin-bottom: 40px;">業務開始：意識同期プロセス</h3>
             
             <div class="input-group">
-                <label>1. 個体識別名（氏名）</label>
+                <label>1. 職員ID（氏名）</label>
                 <input type="text" id="p-name" placeholder="氏名を入力">
             </div>
             
@@ -36,26 +32,26 @@
                 <input type="text" id="p-food" placeholder="例：ツナマヨおにぎり">
             </div>
             
-            <div class="input-group">
-                <label>3. 先ほどスマホで見た「SNSの単語」は？</label>
-                <input type="text" id="p-sns" placeholder="例：政治、芸能、昨日見た夢">
-            </div>
+            <div id="news-status">時事ニュースを同期中...</div>
 
-            <button onclick="boot()">適性検査を開始する</button>
-
-            <p style="font-size: 0.65rem; color: #999; margin-top: 30px; text-align: center;">
-                ※AI解析にはGemini APIキーが必要です（未入力時はシミュレーションモードで開始します）。
+            <button id="start-btn" onclick="boot()" disabled>打刻：業務を開始</button>
+            
+            <p style="font-size: 0.6rem; color: #94a3b8; margin-top: 35px; text-align: center; font-family: 'Inter', sans-serif;">
+                ※AI解析にはGemini APIキーが必要です。未入力時は規定の解析プロトコルを実行します。
             </p>
         </div>
 
-        <!-- Work Screen -->
+        <!-- Work Screen (業務中) -->
         <div id="ui-work" class="hidden">
             <div id="console"></div>
             
-            <div class="status-row">
-                <span class="removal-label">除去プロセス：稼働中</span>
-                <button id="btn-next" onclick="nextStage()" style="width: auto; margin-top: 0; padding: 12px 30px;">漂白（Whitening）</button>
+            <div class="progress-bar">
+                <div id="progress" class="progress-fill"></div>
             </div>
+
+            <div id="monologue" class="monologue"></div>
+
+            <button id="btn-action" onclick="handleStep()">漂白を開始する</button>
         </div>
     </div>
 

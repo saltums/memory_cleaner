@@ -4,9 +4,10 @@ let state = {
     isDemoMode: false,
     pName: '',
     pFood: '',
-    pSns: '',
+    latestNews: "未定義の社会的ノイズ",
     stage: 0,
-    bgWhite: 0
+    step: 0,
+    whitening: 0
 };
 
 const UI = {
@@ -15,78 +16,130 @@ const UI = {
         work: document.getElementById('ui-work')
     },
     console: document.getElementById('console'),
-    btnNext: document.getElementById('btn-next'),
+    monologue: document.getElementById('monologue'),
+    progress: document.getElementById('progress'),
+    btnAction: document.getElementById('btn-action'),
+    startBtn: document.getElementById('start-btn'),
+    newsStatus: document.getElementById('news-status'),
+    clock: document.getElementById('clock'),
     container: document.getElementById('container')
 };
 
-// --- API Key / Mode Check ---
-// 初回起動時にキーがない場合はデモモードを案内する仕組み（簡易版）
+// --- API Key / Mode Initialization ---
 if (!state.apiKey) {
-    console.log("No API Key found. Switching to Demo Mode automatically for preview.");
+    console.warn("No API Key found. Demo Mode enabled.");
     state.isDemoMode = true;
 }
 
-// --- Bootstrap Function ---
-function boot() {
-    state.pName = document.getElementById('p-name').value;
-    state.pFood = document.getElementById('p-food').value;
-    state.pSns = document.getElementById('p-sns').value;
-
-    if (!state.pName || !state.pFood || !state.pSns) {
-        return alert("全ての検査項目に回答してください。");
+// --- News Fetching (RSS2JSON) ---
+async function fetchNews() {
+    try {
+        const rssUrl = encodeURIComponent('https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja');
+        const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+        const data = await response.json();
+        state.latestNews = data.items[0].title.split(' - ')[0];
+        UI.newsStatus.innerText = `【同期完了】最新の汚染源：${state.latestNews}`;
+        UI.startBtn.disabled = false;
+    } catch (e) {
+        state.latestNews = "未定義の社会不安";
+        UI.newsStatus.innerText = "【同期失敗】オフラインモードで開始します。";
+        UI.startBtn.disabled = false;
     }
+}
+fetchNews();
+
+// --- Lifecycle Functions ---
+function boot() {
+    state.pName = document.getElementById('p-name').value || "未定義職員";
+    state.pFood = document.getElementById('p-food').value || "規定の栄養剤";
 
     UI.screens.setup.classList.add('hidden');
     UI.screens.work.classList.remove('hidden');
-    render();
+    
+    // Clock updates
+    setInterval(() => {
+        UI.clock.innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    renderStage();
 }
 
-// --- Rendering Logic ---
-async function render() {
-    UI.btnNext.style.display = "none";
-    UI.console.innerHTML = '<span style="color: #999;">個体データをスキャン中...</span>';
+async function renderStage() {
+    UI.btnAction.disabled = true;
+    UI.progress.style.width = "0%";
+    state.step = 0;
 
-    let text = "";
+    UI.console.innerHTML = '<span style="color: #94a3b8;">案件データをロード中...</span>';
+    UI.monologue.innerHTML = "";
 
-    if (state.stage === 0) {
-        text = await generateAnalysis("sns_pollution");
-    } else if (state.stage === 1) {
-        text = await generateAnalysis("biological_residue");
+    const caseInfo = await generateCaseContent();
+    
+    UI.console.innerHTML = `[案件：${caseInfo.title}]\n${caseInfo.detail}`;
+    UI.monologue.innerHTML = caseInfo.monologue;
+    
+    UI.btnAction.disabled = false;
+    UI.btnAction.innerText = "漂白を開始する";
+}
+
+async function handleStep() {
+    state.step++;
+    if (state.step === 1) {
+        UI.progress.style.width = "50%";
+        UI.console.innerHTML += "\n\n>> 洗浄液を塗布中... 表面の執着が溶解しています。";
+        UI.btnAction.innerText = "洗浄する";
+    } else if (state.step === 2) {
+        UI.progress.style.width = "100%";
+        UI.console.innerHTML += "\n>> 洗浄完了。個体は清潔な『無』へ回帰しました。";
+        UI.btnAction.innerText = "次の案件へ";
     } else {
-        showFinalTwist();
-        return;
-    }
-
-    await typeWriter(text);
-    UI.btnNext.style.display = "block";
-    UI.btnNext.innerText = "漂白（Whitening）を実行";
-}
-
-// --- Gemini / Demo Analysis ---
-async function generateAnalysis(type) {
-    if (state.isDemoMode) {
-        if (type === "sns_pollution") {
-            return `[解析対象：短期的執着]\nあなたが先ほどまで意識していた「${state.pSns}」という概念。これは脳細胞に癒着した${state.pName}という個体の「汚れ」です。SNSという不潔なプールに、自ら浸かりにいく行為は、精神のホワイトニングにおいて最も忌むべきバグです。\n直ちに漂白を実行してください。\n\n除去レベル：推奨`;
+        state.stage++;
+        state.whitening += 0.2;
+        document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.whitening})`;
+        
+        if (state.stage <= 3) {
+            renderStage();
         } else {
-            return `[解析対象：有機的残滓]\nあなたの胃腔内に残留している「${state.pFood}」の記憶。それはただのタンパク質と糖質の塊であり、明日には排泄されるべきゴミに過ぎません。その「味」や「食感」に固執することは、磨き残した奥歯の黄ばみと同じです。\n清潔な「無」へ変換してください。\n\n除去レベル：最大`;
+            showTwist();
         }
     }
+}
 
-    // AI Mode
+// --- Content Generation (Gemini / Demo) ---
+async function generateCaseContent() {
+    const titles = [
+        "G-102: 過去の電子記号",
+        "A-405: 承認欲求の膿",
+        "P-882: 最新の社会的汚染",
+        "P-883: 有機的癒着 [好物記憶]"
+    ];
+    const currentTitle = titles[state.stage];
+
+    if (state.isDemoMode) {
+        const demoData = [
+            { detail: "たまごっちの死、ポケモンの交換、赤外線通信。懐かしさという名の『カビ』が深層心理に繁殖しています。", monologue: "（あー、またこれ。この世代の客、みんなプラスチックのゴミに感情を乗せてる。不衛生だなぁ。）" },
+            { detail: "数年前のSNS投稿。「いいね」の数で自分の肉体の価値を測ろうとするエラー。自意識がドロドロに溶け出しています。", monologue: "（うわ、ベタついてる。こういう承認欲求の脂汚れはヘラでこすらないと落ちないんだよね。肩がこる……。）" },
+            { detail: `現在、社会ネットワーク上に蔓延しているノイズ：\n「${state.latestNews}」\n個体名 [${state.pName}] の脳内にも深く癒着しています。`, monologue: "（……？ このニュース、僕がさっき休憩中に見たやつだ。嫌な偶然だな。胃のあたりが少し、重い。）" },
+            { detail: `「${state.pFood}」の咀嚼、嚥下、および胃壁での分解プロセスへの執着。不潔なエネルギー代謝の残滓。`, monologue: "（……おかしい。これ、僕がさっき食べた${state.pFood}の感触と全く同じだ。……おい、これ、何の冗談だ？）" }
+        ];
+        return { title: currentTitle, ...demoData[state.stage] };
+    }
+
+    // Gemini Mode
     const prompt = `
- あなたは厚生労働省 精神衛生管理局の、冷徹で無機質なAI検査官です。
- 以下の情報を元に、個体の「不潔な記憶」に対する解析報告書を、村田沙耶香のような生理的で冷ややかな文体で作製してください。
-
- 【個体情報】
- 氏名: ${state.pName}
- 外部汚染源（SNS単語）: ${state.pSns}
- 生物学的残滓（朝食）: ${state.pFood}
-
- 【解析指令】
- 1. ${type === "sns_pollution" ? `SNSで見た「${state.pSns}」という概念が、いかに個体の精神を汚染し、不潔な癒着を引き起こしているかを、臨床的・生理的な表現で糾弾せよ。` : `胃にある「${state.pFood}」という有機物の記憶が、いかに生命維持に不要なゴミであり、個体の純度を下げているかを記述せよ。`}
- 2. 感情を排し、事務的かつ不気味なトーンを維持すること。
- 3. 200文字程度で出力し、最後に必ず「不純物含有率：◯％」という一文を添えること。
- 4. 日本語で出力すること。
+ あなたは「記憶清浄ポータル」のシステムAI、および「清掃員」の深層心理です。
+ 現在の案件[${currentTitle}]に対して、以下の情報を元に出力してください。
+ 
+ 【状況】
+ 案件タイトル: ${currentTitle}
+ 職員氏名: ${state.pName}
+ 今朝のニュース: ${state.latestNews}
+ 好物: ${state.pFood}
+ 
+ 【出力指令】
+ 1. システムメッセージ(detail): 村田沙耶香風の冷徹・生理的な文体で、その「記憶」がいかに不潔な汚れであるかを記述せよ。
+ 2. 職員の独り言(monologue): 仕事に疲れ、皮肉屋な清掃員の独り言を（）で記述せよ。徐々に自分との共通点に気づき、不穏になる様子を段階的に表現せよ。
+ 3. 日本語で、JSON形式で返せ。
+    {"detail": "...", "monologue": "..."}
 `;
 
     try {
@@ -96,55 +149,40 @@ async function generateAnalysis(type) {
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        const jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '');
+        return { title: currentTitle, ...JSON.parse(jsonStr) };
     } catch (e) {
-        console.error("AI Analysis failed. Falling back to Demo Mode.", e);
+        console.error("Gemini failed. Defaulting to Demo.", e);
         state.isDemoMode = true;
-        return generateAnalysis(type);
+        return generateCaseContent();
     }
 }
 
-// --- Final Stage Logic ---
-function showFinalTwist() {
-    const twistText = `[警告：システム強制終了 / 最終ログ]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\nスマホの画面には、さっきまで見ていた「${state.pSns}」の文字。\n急ブレーキの音。世界が激しく回転し、白一色に染まっていく。\n\nアスファルトの上、砕けたスマホの隣に、\n${state.pName}さんが落とした「${state.pFood}」が、\n血と混じって無機質に転がっている。\n\n……あぁ、そうか。\n掃除をしていたんじゃない。\n僕は、消え去る前の自分の記憶を、\n必死に「汚れ」だと思い込もうとしていただけなんだ。`;
+// --- Final Twist ---
+async function showTwist() {
+    UI.btnAction.disabled = true;
+    UI.container.style.borderLeft = "12px solid #fff";
+    UI.console.style.color = "#cbd5e1";
+    
+    const twistText = `[警告：致命的なエラー / 走馬灯発現]\n\n${new Date().toLocaleTimeString()}：いつもと同じ信号待ち。\nスマホの画面には、死ぬまで見ていたニュース。\n「${state.latestNews}」\n急ブレーキの音。世界がひっくり返り、アスファルトが空になる。\n\n地面に転がる、${state.pName}さんが落とした${state.pFood}のおにぎり。\n血にまみれて、真っ白に、洗浄されていく。`;
 
-    typeWriter(twistText).then(() => {
-        UI.btnNext.style.display = "block";
-        UI.btnNext.innerText = "人生の漂白を完了する";
-        UI.btnNext.style.background = "var(--gov-red)";
-        document.body.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
-    });
-}
-
-function nextStage() {
-    state.stage++;
-    if (state.stage <= 2) {
-        state.bgWhite += 0.3;
-        document.body.style.backgroundColor = `rgba(255, 255, 255, ${state.bgWhite})`;
-        render();
-    } else {
-        completeProcess();
-    }
-}
-
-function completeProcess() {
-    UI.container.innerHTML = `
-        <div class="fade-in" style="line-height:2.5;">
-            <p style="font-weight:bold; letter-spacing:0.5em; color:#ccc; margin-bottom: 2rem;">COMPLETE</p>
-            <p>${state.pName} 様</p>
-            <p>全ての汚れ（人生）の漂白が正常に完了しました。<br>
-            あなたは今、完璧に清潔な「無」となりました。</p>
-            <div style="margin-top: 3rem; border-top: 1px solid #eee; padding-top: 2rem;">
-                <p style="font-size: 0.9rem; color: #999;">本日の業務はすべて終了です。ゆっくりとお休みください。</p>
-                <button onclick="location.reload()" style="background: transparent; border: 1px solid var(--gov-light-gray); color: #999; font-size: 0.7rem; width: auto; padding: 0.5rem 1rem; margin-top: 2rem;">ログオフ</button>
-            </div>
-        </div>`;
-    document.body.style.backgroundColor = "#fff";
-}
-
-// --- Typing Effect ---
-async function typeWriter(text) {
     UI.console.innerHTML = "";
+    await typeEffect(twistText);
+    
+    UI.monologue.innerHTML = "（……あぁ、そうか。掃除をしていたんじゃない。\n僕は、自分を消し去るための『機能』だったんだ。）";
+    
+    UI.btnAction.disabled = false;
+    UI.btnAction.innerText = "すべてを完了する（Commit）";
+    UI.btnAction.style.background = "#ef4444";
+    
+    UI.btnAction.onclick = () => {
+        UI.container.innerHTML = `<div class="fade-in" style="color:#cbd5e1; font-size:0.8rem; letter-spacing:1.8em; text-align:center; width:100%; margin-top: 40px;">SHUTDOWN // COMPLETE</div>`;
+        document.body.style.backgroundColor = "#fff";
+    };
+}
+
+// --- Utilities ---
+async function typeEffect(text) {
     const chars = Array.from(text);
     for (const char of chars) {
         UI.console.innerHTML += char;
@@ -153,6 +191,6 @@ async function typeWriter(text) {
     }
 }
 
-// HTML側からの呼び出しのためにグローバルに登録（または直接onclickで使用）
+// Export functions for HTML
 window.boot = boot;
-window.nextStage = nextStage;
+window.handleStep = handleStep;
