@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Whitening System — v1.0.4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="臨床的アプローチによる記憶の漂白システム。あなたの「人生」という汚れを、Gemini AIが丁寧に除去します。">
+</head>
+<body>
+    <div class="grain"></div>
+    
+    <div id="app-container">
+        <h1>Memory Whitening System</h1>
+
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="card fade-in">
+            <div class="input-group">
+                <label for="api-key">Gemini API Key</label>
+                <input type="password" id="api-key" placeholder="•••••••••••••••••••••••••••••••••••••••">
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+                    ※Gemini APIは、Googleの高性能AIをこのアプリで利用するための鍵です。キーはブラウザにのみ保存されます。
+                </p>
+            </div>
+            <button id="login-btn">システムへログイン</button>
+        </div>
+
+        <!-- Input Screen -->
+        <div id="input-screen" class="card hidden">
+            <div class="input-group">
+                <label>識別ID / 呼称</label>
+                <input type="text" id="player-name" placeholder="例：サトウ イチロウ">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-group">
+                    <label>年次（年齢）</label>
+                    <input type="number" id="player-age" placeholder="30">
+                </div>
+                <div class="input-group">
+                    <label>型式（性別）</label>
+                    <select id="player-gender">
+                        <option value="男性">男性型</option>
+                        <option value="女性">女性型</option>
+                        <option value="その他">非公開 / その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>あなたの一番忘れたい記憶は何ですか？</label>
+                <textarea id="player-episode" placeholder="例：あの時あんなことを言わなければよかった、大切にしていたものを壊してしまった..."></textarea>
+            </div>
+            
+            <button id="start-btn">漂白プロセスを開始</button>
+        </div>
+
+        <!-- Cleaning Screen -->
+        <div id="cleaning-screen" class="card hidden">
+            <div id="memory-display">システムの初期化中...</div>
+            
+            <button id="action-btn" disabled>漂白を実行</button>
+
+            <div class="status-bar">
+                <span class="system-label">CLEANLINESS</span>
+                <div class="progress-container">
+                    <div id="progress-bar"></div>
+                </div>
+                <span class="system-label"><span id="cleanliness-pct">0</span>%</span>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="card hidden">
+            <div id="end-message" style="line-height: 2; font-size: 0.95rem;"></div>
+            <div style="margin-top: 3rem; text-align: center;">
+                <p class="system-label">すべての処理が正常に完了しました。</p>
+                <button onclick="location.reload()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.7rem; width: auto; padding: 0.5rem 1rem;">ログオフ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
