@@ -34,7 +34,15 @@ body, html {
 #overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: white; opacity: 0; pointer-events: none; z-index: 9999;
-    transition: opacity 3s ease;
+}
+
+.flash {
+    animation: flashEffect 0.5s ease-out forwards;
+}
+
+@keyframes flashEffect {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* --- Smartphone Interface --- */
@@ -329,9 +337,10 @@ input:focus {
 /* --- Special Effects --- */
 .blood-leak {
     position: absolute; background: var(--blood-red);
-    pointer-events: none; z-index: 1000;
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 5px 15px rgba(187, 17, 17, 0.4);
+    pointer-events: none; z-index: 900;
+    border-radius: 0 0 100% 100% / 0 0 20% 20%;
+    box-shadow: 0 8px 30px rgba(187, 17, 17, 0.6);
+    filter: blur(2px);
 }
 
 #final-purified {

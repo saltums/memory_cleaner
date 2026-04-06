@@ -53,28 +53,34 @@ class AudioManager {
     playNucha() {
         if (!this.enabled) return;
         const t = this.ctx.currentTime;
-        
-        // Low frequency squelch
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(100, t);
-        osc.frequency.linearRampToValueAtTime(40, t + 0.2);
+        osc.frequency.setValueAtTime(80, t);
+        osc.frequency.linearRampToValueAtTime(30, t + 0.3);
         
-        // Low pass filter to make it "wet"
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(400, t);
+        filter.frequency.setValueAtTime(300, t);
         
-        gain.gain.setValueAtTime(0.2, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
         
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(this.ctx.destination);
-        
         osc.start();
-        osc.stop(t + 0.2);
+        osc.stop(t + 0.3);
+    }
+
+    // --- Chapter 3: Underwater Filter ---
+    applyUnderwaterEffect(node) {
+        if (!this.enabled) return node;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, this.ctx.currentTime);
+        node.connect(filter);
+        return filter;
     }
 
     playGucha() {
@@ -262,17 +268,16 @@ function login() {
     if (!state.pName || !state.pFood) return;
 
     audio.playLock();
-    // Background Whiteflash effect simulation via overlay
+    // Moonlight/Backlight violence
     const overlay = document.getElementById('overlay');
-    overlay.style.transition = 'opacity 0.2s';
-    overlay.style.opacity = 1;
+    overlay.classList.add('flash');
 
     setTimeout(() => {
         document.getElementById('phone-screen').classList.add('hidden');
         document.getElementById('pc-screen').style.display = "flex";
-        overlay.style.opacity = 0;
+        overlay.classList.remove('flash');
         startWork();
-    }, 400);
+    }, 450);
 }
 
 // --- Professional Terminal (PC) Logic ---
@@ -284,20 +289,20 @@ const scenarios = [
     {
         id: "A-102",
         text: "案件：A-102（他個体）\n脳表に強固な記垢を確認。\n対象：<span class='kikou' onclick='polish(this)'>失恋の痛み</span>、<span class='kikou' onclick='polish(this)'>他人への劣等感</span>",
-        mono: "（……あぁ、これ。みんな同じようなことで記垢を溜める。不潔だなぁ。さっさと削って白くしよう。白くなれば、全部なかったことになるのに。）",
-        chat: ["お疲れさま。A-102、無難なところからだね。", "あぁ、やっぱり他人への劣等感か。不清潔の極みだ。"]
+        mono: "「……う。また寝袋で寝てしまったのか」\n（……あぁ、これ。みんな同じようなことで記垢を溜める。不衛生な黄色い塊。さっさと削って白くしよう。白くなれば、全部なかったことになるのに。）",
+        chat: ["お疲れさま。A-102入ったね。", "大丈夫ですか？ 聞こえますか？"]
     },
     {
         id: "P-882",
         text: "案件：P-882（外部流入）\n社会ステインの癒着。社会的ノイズの除去。\n対象：<span class='kikou' onclick='polish(this)'>${news}</span>",
-        mono: "（……あ、これさっきスマホの通知で消したやつだ。結局、仕事でも消さなきゃいけないのか。社会のノイズ。自分とは無関係な、誰かの不幸。）",
-        chat: ["ニュース、さっき消したやつでしょ？", "情報の鮮度が速すぎて、掃除も追いつかないよ。"]
+        mono: "（……あ、これさっきスマホの通知で消したやつだ。結局、仕事でも消らなきゃいけないのか。社会のノイズ。自分とは無関係な、誰かの不幸。消しても消しても、情報の残滓（ステイン）は指の腹にこびりついているような気がした。）",
+        chat: ["ニュース、さっき消したやつが癒着してるね。", "情報の鮮度が速すぎて、掃除も追いつかないよ。"]
     },
     {
         id: "BIO-CHECK",
-        text: "案件：BIO-CHECK\n感覚情報の整合性確認。\n対象：<span class='kikou' onclick='polish(this)'>${food}の匂い</span>、<span class='kikou' onclick='polish(this)'>${food}の食感</span>",
-        mono: "（……え？ なぜこれが研磨対象になっているんだ。これは、僕の。指が氷のように冷たい。キーボードを叩く音すら、水の中にいるように遠く響く。）",
-        chat: ["……返信がないね。", "大丈夫ですか？ 聞こえますか？"]
+        text: "提供：BIO-CHECK（内部メモリ）\n感覚情報の整合性確認。\n対象：<span class='kikou' onclick='polish(this)'>${food}の匂い</span>、<span class='kikou' onclick='polish(this)'>${food}の食感</span>",
+        mono: "「……え？」\n（……なぜ、これが研磨対象になっているんだ。これは、僕の――。指が氷のように冷たい。エアコン、誰だよ。下げすぎだろ……。）",
+        chat: ["…………？", "時刻、〇時〇分。ホワイトニング（死亡）を確認。"]
     }
 ];
 
@@ -384,16 +389,28 @@ async function finalize() {
     const monoBox = document.getElementById('monologue');
     consoleBox.innerHTML = "";
     
-    const finalScript = `[警告：意識のホワイトニング完了]\n\n${new Date().toLocaleTimeString()}：周りの声で目が覚めた。\n「大丈夫ですか！」「聞こえますか！」\nそうか、また寝袋で寝てしまったのか。\n指先が氷みたいに冷たい。感覚がない。\n\nスマホの画面には、死ぬまで見ていたニュース。\n「${state.latestNews}」\nアスファルトに転がる、${state.pName}さんが落とした${state.pFood}。\n\n僕の人生という名の記垢は、今、すべて綺麗に削り取られた。\n\n時刻、〇時〇分。ホワイトニング（死亡）を確認。`;
+    const finalScript = `[警告：意識のホワイトニング完了]\n\n指先が氷みたいに冷たい。感覚がない。\n\nスマホの画面には、死ぬまで見ていたニュース。\n「${state.latestNews}」\nアスファルトの上に転がり、血にまみれた${state.pFood}を眺めながら、自分という汚れを、自分自身で消し去っていたのだ。\n\n時刻、〇時〇分。ホワイトニング（死亡）を確認。`;
 
     let i = 0;
     function type() {
         if (i < finalScript.length) {
             consoleBox.innerHTML += finalScript.charAt(i);
             i++;
-            setTimeout(type, 40);
+            // Fingers feel cold - typing slows down
+            const delay = 50 + (state.stage === 2 ? 50 : 0);
+            setTimeout(type, delay);
         } else {
-            monoBox.innerHTML = "（……あぁ、やっと。私は、清潔になれた。）";
+            monoBox.innerHTML = "「……あぁ、やっと。私は、清潔になれた。」";
+            
+            // Subtle whisper
+            if ('speechSynthesis' in window) {
+                const msg = new SpeechSynthesisUtterance("私は、清潔になれた。");
+                msg.lang = 'ja-JP';
+                msg.rate = 0.5;
+                msg.volume = 0.2;
+                window.speechSynthesis.speak(msg);
+            }
+
             setTimeout(() => {
                 const finalScreen = document.getElementById('final-purified');
                 finalScreen.classList.remove('hidden');
