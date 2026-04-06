@@ -35,15 +35,21 @@
                     <div class="notif-icon">🛡️</div>
                     <span class="notif-tag">SYSTEM</span>
                 </div>
-                <div class="notif-body">外部ログ同期中... 画面をタップして開始</div>
+                <div class="notif-body">外部ログ同期中... <span class="swipe-hint">← スワイプして消去</span></div>
             </div>
         </div>
 
         <div id="auth-area" class="hidden glass-panel">
-            <div class="auth-header">セキュリティ認証</div>
-            <div class="auth-message">業務再開には個体識別情報の入力が必要です</div>
-            <input type="text" id="p-name" placeholder="職員氏名（ID）" autocomplete="off">
-            <input type="text" id="p-food" placeholder="直近の摂取物（例：ツナマヨ）" style="margin-top:10px;" autocomplete="off">
+            <div class="auth-header">個体識別認証</div>
+            <div class="auth-message">業務再開には以下の入力が必要です</div>
+            <div class="input-group">
+                <label for="p-name">氏名（職員ID兼用）</label>
+                <input type="text" id="p-name" placeholder="例：サトウ" autocomplete="off">
+            </div>
+            <div class="input-group" style="margin-top:15px;">
+                <label for="p-food">直近の摂取物（記録用）</label>
+                <input type="text" id="p-food" placeholder="例：ツナマヨ、ビール等" autocomplete="off">
+            </div>
             <button id="btn-login" onclick="login()">業務を再開</button>
         </div>
         

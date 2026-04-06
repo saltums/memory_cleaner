@@ -126,43 +126,56 @@ body, html {
     font-weight: 400;
 }
 
-.glass-panel {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid var(--glass-border);
-    padding: 30px 20px;
-    border-radius: 30px;
-    margin-top: auto;
-    margin-bottom: 40px;
-    animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+.swipe-hint {
+    display: inline-block;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-left: 10px;
+    animation: pulseHint 1.5s infinite;
 }
 
 .auth-header {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    letter-spacing: 0.1em;
 }
 
 .auth-message {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #94a3b8;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-left: 4px;
 }
 
 input {
     width: 100%; padding: 14px;
-    border: none; border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.95rem;
     outline: none;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
-input:focus { background: rgba(255, 255, 255, 0.15); }
+input:focus { 
+    background: rgba(255, 255, 255, 0.15); 
+    border-color: rgba(255, 255, 255, 0.3);
+}
 
 #btn-login {
     width: 100%; margin-top: 20px; padding: 16px;
@@ -344,13 +357,10 @@ input:focus { background: rgba(255, 255, 255, 0.15); }
     to { transform: scale(1); opacity: 1; }
 }
 
-@keyframes glitch {
-    0% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-    100% { transform: translate(0); }
+@keyframes pulseHint {
+    0% { transform: translateX(0); opacity: 0.5; }
+    50% { transform: translateX(-5px); opacity: 1; }
+    100% { transform: translateX(0); opacity: 0.5; }
 }
 
 .zoom-out {
