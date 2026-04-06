@@ -3,72 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Whitening System - フェーズ：3</title>
+    <title>Whiteing Day - 記垢剥離業務</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;700&family=Sawarabi+Mincho&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <div id="container">
-        <div class="header">
-            <span>WHITENING_STATION // UNIT_702</span>
-            <span id="clock">00:00:00</span>
-        </div>
 
-        <!-- Setup Screen -->
-        <div id="ui-setup" class="fade-in">
-            <h2 style="font-weight:lighter; color: #64748b; letter-spacing:0.3em; margin-bottom: 25px;">業務開始：環境同期</h2>
-            <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:30px;">※本業務で得られた個人情報は、作業終了後ただちに漂白されます。</p>
+<div id="overlay"></div>
 
-            <div style="margin-bottom:20px;">
-                <label style="font-size:0.75rem; color:#94a3b8;">職員名（ID）</label>
-                <input type="text" id="p-name" placeholder="氏名">
+<!-- --- Smartphone Interface --- -->
+<div id="phone-screen" class="phone-container">
+    <div id="lock-screen">
+        <div class="status-bar">
+            <span class="carrier">WHITE_NET</span>
+            <div class="status-icons">
+                <span class="wifi">📶</span>
+                <span class="battery">88%</span>
             </div>
-            
-            <div style="margin-bottom:20px;">
-                <label style="font-size:0.75rem; color:#94a3b8;">好きなおにぎりの具</label>
-                <input type="text" id="p-food" placeholder="例：ツナマヨ">
-            </div>
-            
-            <div id="news-loader" style="font-size:0.75rem; color:var(--accent-blue);">最新の環境ノイズを同期中...</div>
-
-            <button id="start-btn" onclick="startWork()" disabled>打刻：業務を開始</button>
         </div>
-
-        <!-- Part 1: Day 1 (Customer Cleaning Portal) -->
-        <div id="ui-work" class="hidden">
-            <div id="main-layout">
-                <div id="work-area">
-                    <div id="console"></div>
-                    <div id="monologue" class="monologue"></div>
+        
+        <div class="time-container">
+            <div class="date" id="phone-date">4月7日 火曜日</div>
+            <div class="time" id="clock">03:14</div>
+        </div>
+        
+        <div id="notif-container">
+            <div id="loading-notif" class="notification system-notif">
+                <div class="notif-header">
+                    <div class="notif-icon">🛡️</div>
+                    <span class="notif-tag">SYSTEM</span>
                 </div>
-                <div id="chat-area">
-                    <div style="font-size:0.6rem; color:#cbd5e1; margin-bottom:12px; letter-spacing:0.1em;">INTERNAL_CHAT: SATO</div>
-                    <div id="chat-log"></div>
-                </div>
+                <div class="notif-body">外部ログ同期中... 画面をタップして開始</div>
             </div>
-            <button id="btn-next" onclick="advanceStage()" disabled>漂白未完了</button>
         </div>
 
-        <!-- Part 3: Internal Memory Optimization (Brain) -->
-        <div id="ui-day2" class="hidden">
-            <h1 id="title" style="font-weight: 300; letter-spacing: 0.1em; color: var(--text-mute); font-size: 1.4rem;">第3フェーズ：内部メモリ最適化</h1>
-            <p id="status-day2" style="font-size: 0.85rem; color: #888; margin-top: 10px; height: 1.2em;">システムを正常化するため、残存メモリを選択して消去してください</p>
-
-            <div class="brain-container" id="brain">
-                <!-- Chips are dynamically generated here -->
-            </div>
-
-            <p style="margin-top: 25px; font-size: 0.7rem; color: #bbb; letter-spacing: 0.1em;">メモリラベルを選択すると最適化（消去）されます</p>
+        <div id="auth-area" class="hidden glass-panel">
+            <div class="auth-header">セキュリティ認証</div>
+            <div class="auth-message">業務再開には個体識別情報の入力が必要です</div>
+            <input type="text" id="p-name" placeholder="職員氏名（ID）" autocomplete="off">
+            <input type="text" id="p-food" placeholder="直近の摂取物（例：ツナマヨ）" style="margin-top:10px;" autocomplete="off">
+            <button id="btn-login" onclick="login()">業務を再開</button>
         </div>
-
+        
+        <div class="home-indicator"></div>
     </div>
+</div>
 
-    <!-- Final Message Overlay -->
-    <div id="overlay-msg">清掃完了。お疲れ様でした。</div>
+<!-- --- Professional Terminal (PC) Interface --- -->
+<div id="pc-screen">
+    <div class="pc-header">
+        <span class="station-id">WHITENING_DAY // PROTOCOL_702</span>
+        <span class="pc-clock-label">CURRENT_TIME: <span id="pc-clock">00:00:00</span></span>
+    </div>
+    
+    <div id="main-layout">
+        <div id="work-area">
+            <div id="console-header">TASK_LOG: <span id="case-id">A-102</span></div>
+            <div id="console"></div>
+            <div id="monologue" class="monologue"></div>
+        </div>
+        
+        <div id="chat-area">
+            <div class="chat-header">INTERNAL_CHAT</div>
+            <div id="chat-log" class="chat-log"></div>
+        </div>
+    </div>
+    
+    <div class="pc-footer">
+        <button id="btn-next" onclick="nextStage()" disabled>研磨未完了</button>
+    </div>
+</div>
 
-    <script src="main.js"></script>
+<div id="final-purified" class="hidden">
+    <div class="purified-text">PURIFIED.</div>
+</div>
+
+<script src="main.js"></script>
 </body>
 </html>
